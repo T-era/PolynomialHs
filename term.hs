@@ -6,10 +6,14 @@ instance (Num k, Eq k, Enum k, Ord k) => Num (Kou k) where
   fromInteger x = Kou (fromInteger x) []
   negate (Kou con coe) = Kou (negate con) coe
   abs (Kou con coe) = Kou (abs con) coe
-  signum (Kou con _) = Kou (signum con) [0,0..]
-  (Kou con1 coe1) * (Kou con2 coe2) = Kou (con1 * con2) [a+b | (a, b) <- zipWithFill 0 coe1 coe2]
+  signum (Kou con _) = Kou (signum con) []
+  (Kou con1 coe1) * (Kou con2 coe2) = Kou (con1 * con2) [a+b | (a, b) <- _zipLs coe1 coe2]
   (+) k1@(Kou con1 coe1) k2@(Kou con2 coe2)
     | canSum k1 k2 = Kou (con1 + con2) coe1
+
+_zipLs al [] = map (\a -> (a,0)) al
+_zipLs [] bl = map (\b -> (0,b)) bl
+_zipLs (a:as) (b:bs) = ((a,b):_zipLs as bs)
 
 instance (Num k, Eq k, Enum k, Ord k, Show k) => Show (Kou k) where
   show (Kou con coe)
@@ -21,32 +25,30 @@ instance (Eq k) => Eq (Kou k) where
   (==) (Kou con1 coe1) (Kou con2 coe2) = (con1 == con2) && (coe1 == coe2)
 
 instance (Eq k, Ord k) => Ord (Kou k) where
-  compare (Kou con1 coe1) (Kou con2 coe2) = compare coe2 coe1
+  compare (Kou con1 coe1) (Kou con2 coe2) = compare coe1 coe2
 
 canSum (Kou _ coe1) (Kou _ coe2) = coe1 == coe2
 
 showCon 1 = ""
 showCon (-1) = "-"
 showCon x = show x
--- showCoeff　a _ = show a
 showCoeff [] _ = ""
 showCoeff (c:cs) (a:as)
   | c == 0    = showCoeff cs as
   | c == 1    = [a] ++ (showCoeff cs as)
   | otherwise = [a] ++ "^" ++ (show c) ++ (showCoeff cs as)
 
-zipWithFill _ [] [] = []
-zipWithFill filler (a:ls) [] = ((a,filler):zipWithFill filler ls [])
-zipWithFill filler [] (a:ls) = ((filler,a):zipWithFill filler [] ls)
-zipWithFill filler (a:as) (b:bs) = ((a,b):zipWithFill filler as bs)
-
-(<<--) :: (Integral d, Num d) => (Kou d) -> [d] -> (Kou d)
-k <<-- [] =  k
-(Kou con coe) <<-- l = Kou (con * ncon) ncoe
+(<<--) :: (Num k, Eq k) => (Kou k) -> [k] -> (Kou k)
+(Kou con coe) <<-- ll = Kou (con * su) ncoe
   where
-    (ncon, ncoe) = _apply coe l
+    (su, ncoe) = _apply coe ll
+    _apply jl [] = (1, jl)
     _apply [] _ = (1, [])
-    _apply els [] = (1, els)
-    _apply (e:el) (l:ls) = (l^e * next, (0:nl))
+    _apply (j:js) (e:es) = ((_pow e j) * nj, (0:ne))
       where
-        (next, nl) = _apply el ls
+        (nj, ne) = _apply js es
+
+_pow x y = __pow x y 1
+  where
+    __pow _ 0 acm = acm
+    __pow x y acm = __pow x (y-1) (acm * x)
