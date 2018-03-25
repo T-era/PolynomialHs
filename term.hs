@@ -1,8 +1,8 @@
-module Term(Kou(Kou), canSum, (<<--)) where
+module Term(Kou(Kou), canSum, (<<--), (<<::)) where
 
-data Kou k = Kou { constant :: k, coefficient :: [k] }
+data Kou n = Kou { constant :: n, coefficient :: [Integer] }
 
-instance (Num k, Eq k, Enum k, Ord k) => Num (Kou k) where
+instance (Num n, Eq n, Enum n, Ord n) => Num (Kou n) where
   fromInteger x = Kou (fromInteger x) []
   negate (Kou con coe) = Kou (negate con) coe
   abs (Kou con coe) = Kou (abs con) coe
@@ -15,30 +15,31 @@ _zipLs al [] = map (\a -> (a,0)) al
 _zipLs [] bl = map (\b -> (0,b)) bl
 _zipLs (a:as) (b:bs) = ((a,b):_zipLs as bs)
 
-instance (Num k, Eq k, Enum k, Ord k, Show k) => Show (Kou k) where
+instance (Num n, Eq n, Enum n, Ord n, Show n) => Show (Kou n) where
   show (Kou con coe)
     | con == 0  = ""
-    | con > 0   = "+" ++ (showCon con) ++ showCoeff coe "abcdefg"
-    | otherwise = (showCon con) ++ showCoeff coe "abcdefg"
+    | con > 0   = "+" ++ (showCon con (showCoeff coe ['a'..]))
+    | otherwise = (showCon con (showCoeff coe ['a'..]))
 
-instance (Eq k) => Eq (Kou k) where
+instance (Eq n) => Eq (Kou n) where
   (==) (Kou con1 coe1) (Kou con2 coe2) = (con1 == con2) && (coe1 == coe2)
 
-instance (Eq k, Ord k) => Ord (Kou k) where
+instance (Eq n, Ord n) => Ord (Kou n) where
   compare (Kou con1 coe1) (Kou con2 coe2) = compare coe1 coe2
 
 canSum (Kou _ coe1) (Kou _ coe2) = coe1 == coe2
 
-showCon 1 = ""
-showCon (-1) = "-"
-showCon x = show x
+showCon 1 "" = "1"
+showCon 1 a = a
+showCon (-1) a = '-':a
+showCon x a = show x ++ a
 showCoeff [] _ = ""
 showCoeff (c:cs) (a:as)
   | c == 0    = showCoeff cs as
   | c == 1    = [a] ++ (showCoeff cs as)
   | otherwise = [a] ++ "^" ++ (show c) ++ (showCoeff cs as)
 
-(<<--) :: (Num k, Eq k) => (Kou k) -> [k] -> (Kou k)
+(<<--) :: (Num n, Eq n) => (Kou n) -> [n] -> (Kou n)
 (Kou con coe) <<-- ll = Kou (con * su) ncoe
   where
     (su, ncoe) = _apply coe ll
@@ -47,6 +48,15 @@ showCoeff (c:cs) (a:as)
     _apply (j:js) (e:es) = ((_pow e j) * nj, (0:ne))
       where
         (nj, ne) = _apply js es
+
+
+(<<::) :: (Num d, Integral d, Eq d, Num k, Eq k) => (Kou d) -> [k] -> k
+(Kou con coe) <<:: ll = (fromIntegral con) * (_apply0 coe ll)
+  where
+    _apply0 [] _ = 1
+    _apply0 (0:js) [] = _apply0 js []
+    _apply0 (_:js) [] = 0
+    _apply0 (j:js) (e:es) = (_pow e j) * (_apply0 js es)
 
 _pow x y = __pow x y 1
   where
