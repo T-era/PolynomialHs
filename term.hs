@@ -2,7 +2,7 @@ module Term(Kou(Kou), canSum, (<<--), (<<::)) where
 
 data Kou n = Kou { constant :: n, coefficient :: [Integer] }
 
-instance (Num n, Eq n, Enum n, Ord n) => Num (Kou n) where
+instance (Num n, Eq n, Ord n) => Num (Kou n) where
   fromInteger x = Kou (fromInteger x) []
   negate (Kou con coe) = Kou (negate con) coe
   abs (Kou con coe) = Kou (abs con) coe
@@ -15,7 +15,7 @@ _zipLs al [] = map (\a -> (a,0)) al
 _zipLs [] bl = map (\b -> (0,b)) bl
 _zipLs (a:as) (b:bs) = ((a,b):_zipLs as bs)
 
-instance (Num n, Eq n, Enum n, Ord n, Show n) => Show (Kou n) where
+instance (Num n, Eq n, Ord n, Show n) => Show (Kou n) where
   show (Kou con coe)
     | con == 0  = ""
     | con > 0   = "+" ++ (showCon con (showCoeff coe ['a'..]))
@@ -25,9 +25,14 @@ instance (Eq n) => Eq (Kou n) where
   (==) (Kou con1 coe1) (Kou con2 coe2) = (con1 == con2) && (coe1 == coe2)
 
 instance (Eq n, Ord n) => Ord (Kou n) where
-  compare (Kou con1 coe1) (Kou con2 coe2) = compare coe1 coe2
+  compare (Kou con1 coe1) (Kou con2 coe2) = compare coe2 coe1
 
-canSum (Kou _ coe1) (Kou _ coe2) = coe1 == coe2
+canSum (Kou _ coe1) (Kou _ coe2) = _isSame coe1 coe2
+  where
+    _isSame [] [] = True
+    _isSame (a:as) [] = a == 0 && _isSame as []
+    _isSame [] (b:bs) = b == 0 && _isSame [] bs
+    _isSame (a:as) (b:bs) = a == b && _isSame as bs
 
 showCon 1 "" = "1"
 showCon 1 a = a
