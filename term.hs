@@ -2,6 +2,9 @@ module Term(Kou(Kou), canSum, (<<--), (<<::)) where
 
 data Kou n = Kou { constant :: n, coefficient :: [Integer] }
 
+instance Functor Kou where
+  fmap f (Kou n l) = Kou (f n) l
+
 instance (Num n, Eq n, Ord n) => Num (Kou n) where
   fromInteger x = Kou (fromInteger x) []
   negate (Kou con coe) = Kou (negate con) coe

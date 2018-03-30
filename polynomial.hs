@@ -1,9 +1,12 @@
-module Polynomial (Shk(Shk), (<<-), (<<:)) where
+module Polynomial (Shk(Shk), (<<-), (<<:), monomial) where
 
 import Term
 import Data.List
 
 newtype Shk k = Shk [Kou k]
+
+instance Functor Shk where
+  fmap f (Shk l) = Shk (map (fmap f) l)
 
 instance (Num k, Eq k, Enum k, Ord k) => Num (Shk k) where
   fromInteger x = Shk [fromInteger x]
@@ -13,6 +16,9 @@ instance (Num k, Eq k, Enum k, Ord k) => Num (Shk k) where
   (Shk kl1) * (Shk kl2) = Shk (unify [k1 * k2 | k1 <- kl1, k2 <- kl2])
   (Shk kl1) + (Shk kl2) = Shk (unify (kl1 ++ kl2))
 
+-- 単項式を作るためのバイパス
+monomial :: a -> [Integer] -> Shk a
+monomial x l = Shk [Kou x l]
 
 instance (Num k, Eq k, Enum k, Ord k, Show k) => Show (Shk k) where
   show (Shk ks) = result

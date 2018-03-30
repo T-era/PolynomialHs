@@ -1,51 +1,39 @@
 import Polynomial
 import Term
 
-_a = Kou 1 [1,0,0]
-_b = Kou 1 [0,1,0]
-_c = Kou 1 [0,0,1]
-_f = Kou 1 ((take 5 $ repeat 0) ++ [1])
-_g = Kou 1 ((take 6 $ repeat 0) ++ [1])
-_h = Kou 1 ((take 7 $ repeat 0) ++ [1])
+import Data.Char
 
-a = Shk [_a]
-b = Shk [_b]
-c = Shk [_c]
-f = Shk [_f]
-g = Shk [_g]
-h = Shk [_h]
+-- 一乗の指定した文字項を作ります
+ms n c = monomial n l
+  where
+    l = (take at $ repeat 0) ++ [1]
+    at = (ord c) - (ord 'a')
+
+a = ms 1 'a'
+b = ms 1 'b'
+c = ms 1 'c'
+f = ms 1 'f'
+g = ms 1 'g'
+h = ms 1 'h'
 
 s = a^3 + f * a^2 + g * a + h
 
 main = do
   -- 3次方程式に対する式変換で、2乗の項を消す。
-  let tpo = 1/3 :: Double
-      tto = 1/27 :: Double
-      -- Doubleの項と式を定義する
-      _db = Kou 1 [0,1] :: Kou Double
-      _df = Kou 1 ((take 5 $ repeat 0) ++ [1]) :: Kou Double
-      _dg = Kou 1 ((take 6 $ repeat 0) ++ [1]) :: Kou Double
-      _dh = Kou 1 ((take 7 $ repeat 0) ++ [1]) :: Kou Double
-      _dp = Kou 1 ((take 15 $ repeat 0) ++ [1])
-      _dq = Kou 1 ((take 16 $ repeat 0) ++ [1])
-      db = Shk [_db]
-      df = Shk [_df]
-      dg = Shk [_dg]
-      dh = Shk [_dh]
-      dp = Shk [_dp]
-      dq = Shk [_dq]
+  let -- Doubleの項と式を定義する
+      df = ms 1 'f'
+      fa = ms 1 'b' - (ms (1/3) 'f')
       preF = (take 5 $ repeat 0)
-      fa = db - (Shk [Kou tpo (preF ++ [1])])
-      fg = dp + (Shk [Kou tpo (preF ++ [2])])
-      fh = dq + (Shk [Kou tto (preF ++ [3])])
-              + (Shk [(Kou tpo (preF ++ [1])) * _dp])
+      fg = (ms 1 'p') + 3 * (ms (1/3) 'f') ^ 2
+      fh = (ms 1 'q') + (ms (1/3) 'f') ^ 3
+              + (ms (1/3) 'f') * (ms 1 'p')
 
       ans = (s <<: [fa,0,0,0,0,df,fg,fh])
 
   putStrLn $ show s ++ " => " ++ show ans
 
   let
-      -- 基本交代式
+      -- 基本対称式
       p0 = a+b+c  -- 式変換で2乗の項を消してある場合には0になる
       p1 = a*b+b*c+c*a
       p2 = a*b*c
@@ -55,7 +43,7 @@ main = do
       c_a = c-a
       sssss = (a_b * b_c * c_a) ^ 2  -- 判別式(差積の自乗)
 
-      ppppp = - 4 * p1^3 -- 判別式を基本交代式で構成してみる
+      ppppp = - 4 * p1^3 -- 判別式を基本対称式で構成してみる
               - 27 * p2^2
               - 4 * p2 * (p0^3)  -- 式変換で2乗の項を消してあると消える(p0 <- 0)
               + (p1^2) * (p0^2)  -- 式変換で2乗の項を消してあると消える(p0 <- 0)
